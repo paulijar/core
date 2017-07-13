@@ -52,4 +52,26 @@ class PostgreSqlMigrator extends Migrator {
 
 		return $schemaDiff;
 	}
+	
+	/**
+	 * @param \Doctrine\DBAL\Schema\Schema $targetSchema
+	 * @param \Doctrine\DBAL\Connection $connection
+	 */
+	protected function applySchema(Schema $targetSchema, \Doctrine\DBAL\Connection $connection = null) {
+		if (is_null($connection)) {
+			$connection = $this->connection;
+		}
+
+		$schemaDiff = $this->getDiff($targetSchema, $connection);
+
+		$connection->beginTransaction();
+		$sqls = $schemaDiff->toSql($connection->getDatabasePlatform());
+		$step = 0;
+		foreach ($sqls as $sql) {
+			$this->emit($sql, $step++, count($sqls));
+			$sql = preg_replace('|(ALTER [^s]+ TYPE )(BIGSERIAL)|i', '\1BIGINT', $sql);
+			$connection->query($sql);
+		}
+		$connection->commit();
+	}
 }

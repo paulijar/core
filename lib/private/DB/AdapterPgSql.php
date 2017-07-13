@@ -32,6 +32,9 @@ class AdapterPgSql extends Adapter {
 	public function fixupStatement($statement) {
 		$statement = str_replace( '`', '"', $statement );
 		$statement = str_ireplace( 'UNIX_TIMESTAMP()', self::UNIX_TIMESTAMP_REPLACEMENT, $statement );
+		// BIGSERIAL could not be used in statements altering column type
+		// see https://github.com/owncloud/core/pull/28364#issuecomment-315006853
+		$statement = preg_replace('|(ALTER [^s]+ TYPE )(BIGSERIAL)|i', '\1BIGINT', $statement);
 		return $statement;
 	}
 }
