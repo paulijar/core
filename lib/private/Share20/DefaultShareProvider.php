@@ -109,7 +109,11 @@ class DefaultShareProvider implements IShareProvider {
 			$qb->setValue('share_with', $qb->createNamedParameter($share->getSharedWith()));
 		} else if ($share->getShareType() === \OCP\Share::SHARE_TYPE_GROUP) {
 			//Set the GID of the group we share with
-			$qb->setValue('share_with', $qb->createNamedParameter($share->getSharedWith()));
+			if(is_array($share->getSharedWith())) {
+				$qb->setValue('share_with', $qb->createNamedParameter($share->getSharedWith()[0]));
+			} else {
+				$qb->setValue('share_with', $qb->createNamedParameter($share->getSharedWith()));
+			}
 		} else if ($share->getShareType() === \OCP\Share::SHARE_TYPE_LINK) {
 			//Set the token of the share
 			$qb->setValue('token', $qb->createNamedParameter($share->getToken()));
@@ -849,6 +853,10 @@ class DefaultShareProvider implements IShareProvider {
 		if ($share->getShareType() === \OCP\Share::SHARE_TYPE_USER) {
 			$share->setSharedWith($data['share_with']);
 		} else if ($share->getShareType() === \OCP\Share::SHARE_TYPE_GROUP) {
+			$displayName = \OC::$server->getGroupManager()->get($data['share_with'])->getDisplayName();
+			if(strcmp(strtolower($data['share_with']), strtolower($displayName)) !== 0) {
+				$data['share_with'] = [$data['share_with'], $displayName];
+			}
 			$share->setSharedWith($data['share_with']);
 		} else if ($share->getShareType() === \OCP\Share::SHARE_TYPE_LINK) {
 			$share->setPassword($data['share_with']);

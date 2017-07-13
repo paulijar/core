@@ -233,8 +233,18 @@ class Share implements \OCP\Share\IShare {
 	 * @inheritdoc
 	 */
 	public function setSharedWith($sharedWith) {
-		if (!is_string($sharedWith)) {
-			throw new \InvalidArgumentException();
+		$getStringFromArray = null;
+		if(is_array($sharedWith)) {
+			$getStringFromArray = $sharedWith[1];
+		}
+		if($getStringFromArray !== null) {
+			if (!is_string($getStringFromArray)) {
+				throw new \InvalidArgumentException();
+			}
+		} else {
+			if (!is_string($sharedWith)) {
+				throw new \InvalidArgumentException();
+			}
 		}
 		$this->sharedWith = $sharedWith;
 		return $this;
